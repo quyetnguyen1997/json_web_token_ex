@@ -16,10 +16,22 @@ defmodule JsonWebToken.Algorithm.Hmac do
       ...> JsonWebToken.Algorithm.Hmac.sign(:sha256, shared_key, "signing_input")
       <<90, 34, 44, 252, 147, 130, 167, 173, 86, 191, 247, 93, 94, 12, 200, 30, 173, 115, 248, 89, 246, 222, 4, 213, 119, 74, 70, 20, 231, 194, 104, 103>>
   """
+  if function_exported?(:crypto, :hmac, 3) do
+    defp hmac(sha_bits, shared_key, signing_input) do
+      :crypto.hmac(sha_bits, shared_key, signing_input)
+    end
+  else
+    defp hmac(sha_bits, shared_key, signing_input) do
+      :crypto.mac(:hmac, sha_bits, shared_key, signing_input)
+    end
+  end
+
   def sign(sha_bits, shared_key, signing_input) do
     validate_params(sha_bits, shared_key)
-    :crypto.hmac(sha_bits, shared_key, signing_input)
+    hmac(sha_bits, shared_key, signing_input)
   end
+
+
 
   @doc """
   Predicate to verify the signing_input by comparing a given `mac` to the `mac` for a newly
